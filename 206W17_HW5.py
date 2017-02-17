@@ -2,10 +2,12 @@ import unittest
 import tweepy
 import requests
 import json
+import re
+import twitter_info
 
 ## SI 206 - W17 - HW5
 ## COMMENT WITH:
-## Your section day/time:
+## Your section day/time: sec 3/ Thursday 6pm
 ## Any names of people you worked with on this assignment:
 
 ######## 500 points total ########
@@ -41,10 +43,10 @@ import json
 # and not your personal account, because it's not ideal to share your authentication information for a real account that you use frequently.
 
 ## Get your secret values to authenticate to Twitter. You may replace each of these with variables rather than filling in the empty strings if you choose to do the secure way for 50 EC points
-consumer_key = "37oReL05H0jDkHWB9GbJHoPnM"
-consumer_secret = "JsSoqlQmVwhcQPxgKqUc10C0gk4P1Kt1kHMcfjy3I2cfuyBBwn"
-access_token = "832233608530235393-0iunWw330iT351D7ICmcp3z4NGj38bf"
-access_token_secret = "bmUUMyNDaJoG27greK2wAibkzQg94TAgncpKIZTD5M7yT"
+consumer_key = twitter_info.consumer_key
+consumer_secret = twitter_info.consumer_secret
+access_token = twitter_info.access_token
+access_token_secret = twitter_info.access_token_secret
 ## Set up your authentication to Twitter
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
@@ -82,11 +84,50 @@ def get_twitter (key_words):
 		f = open(CACHE_FNAME, 'w')
 		f.write(json.dumps(CACHE_DICTION))
 		f.close()
-	final_list = []
+	txt_list = []
+	time_list = []
 	for word_diction in py_obj:
-		final_list.append(word_diction["text"])
-	return final_list
+		txt_list.append(word_diction["text"])
+	for word_diction in py_obj:
+		time_list.append(word_diction["created_at"])
+	final_dict = {}
+	count = 0
+	for txt in txt_list:
+		final_dict[txt] = time_list[count]
+		count += 1
+	return final_dict
 
-tw = get_twitter("Facebook")
-for t in tw:
-	print(t, "\n")
+def search_tw(key_word, dict):
+	count = 0
+	final_dict = {}
+	for txt in dict:
+		if re.search(key_word, txt):
+			count += 1
+			final_dict[txt] = dict[txt]
+	return final_dict
+
+def print_3_tw(txt_list, time_list):
+	num = len(txt_list)
+	if num > 3:
+		count = 0
+		while count < 3:
+			print("TEXT:", txt_list[count], "\n", "CREATED AT: ", time_list[count], "\n")
+			count += 1
+	else:
+		count = 0
+		while count < num:
+			print("TEXT:", txt_list[count], "\n", "CREATED AT: ", time_list[count], "\n")
+			count += 1
+
+def main_func():
+	words = input("Enter a key word you want to search: ")
+	twits = get_twitter(words)
+	dict = search_tw(words, twits)
+	txt_list = []
+	time_list = []
+	for key in dict.keys():
+		txt_list.append(key)
+		time_list.append(dict[key])
+	print_3_tw(txt_list, time_list)
+
+main_func()
